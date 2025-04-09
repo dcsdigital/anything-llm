@@ -25,7 +25,7 @@ function ShowWorkspaceChat() {
 
   useEffect(() => {
     async function getWorkspace() {
-      if (!slug) return;
+      if (!slug) return setLoading(false);
       const _workspace = await Workspace.bySlug(slug);
       if (!_workspace) {
         setLoading(false);

@@ -125,21 +125,14 @@ export default function ThreadContainer({ workspace }) {
 
   return (
     <div className="flex flex-col" role="list" aria-label="Threads">
-      <ThreadItem
-        idx={0}
-        activeIdx={activeThreadIdx}
-        isActive={activeThreadIdx === 0}
-        thread={{ slug: null, name: "default" }}
-        hasNext={threads.length > 0}
-      />
       {threads.map((thread, i) => (
         <ThreadItem
           key={thread.slug}
-          idx={i + 1}
+          idx={i}
           ctrlPressed={ctrlPressed}
           toggleMarkForDeletion={toggleForDeletion}
           activeIdx={activeThreadIdx}
-          isActive={activeThreadIdx === i + 1}
+          isActive={thread.slug === threadSlug}
           workspace={workspace}
           onRemove={removeThread}
           thread={thread}

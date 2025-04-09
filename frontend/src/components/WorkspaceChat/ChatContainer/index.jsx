@@ -19,6 +19,8 @@ import SpeechRecognition, {
 } from "react-speech-recognition";
 import { ChatTooltips } from "./ChatTooltips";
 import { MetricsProvider } from "./ChatHistory/HistoricalMessage/Actions/RenderMetrics";
+import showToast from "@/utils/toast";
+import paths from "@/utils/paths";
 
 export default function ChatContainer({ workspace, knownHistory = [] }) {
   const { threadSlug = null } = useParams();
@@ -50,6 +52,31 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!message || message === "") return false;
+
+    // If no workspace is selected, create thread in first available workspace
+    if (!workspace?.slug) {
+      const workspaces = await Workspace.all();
+      if (workspaces.length === 0) {
+        showToast("Please create a workspace first", "error");
+        return;
+      }
+      const { thread } = await Workspace.threads.new(workspaces[0].slug);
+      window.history.pushState({}, '', paths.workspace.thread(workspaces[0].slug, thread.slug));
+      workspace = workspaces[0];
+      threadSlug = thread.slug;
+    }
+
+    // If no thread is selected, create a new one in current workspace
+    if (!threadSlug) {
+      const { thread, error } = await Workspace.threads.new(workspace.slug);
+      if (error) {
+        showToast("Could not create new thread", "error");
+        return;
+      }
+      window.history.pushState({}, '', paths.workspace.thread(workspace.slug, thread.slug));
+      threadSlug = thread.slug;
+    }
+
     const prevChatHistory = [
       ...chatHistory,
       {
@@ -67,7 +94,6 @@ export default function ChatContainer({ workspace, knownHistory = [] }) {
     ];
 
     if (listening) {
-      // Stop the mic if the send button is clicked
       endSTTSession();
     }
     setChatHistory(prevChatHistory);
